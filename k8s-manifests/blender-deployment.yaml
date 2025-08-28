@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blender-deployment
+  labels:
+    app: blender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blender
+  template:
+    metadata:
+      labels:
+        app: blender
+    spec:
+      containers:
+        - name: blender
+          image: mohamedanter845/blender-dev:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - name: blender-storage
+              mountPath: /renders
+      volumes:
+        - name: blender-storage
+          persistentVolumeClaim:
+            claimName: blender-output-pvc
+

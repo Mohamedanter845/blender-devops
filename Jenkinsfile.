@@ -1,11 +1,42 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Hello Mohamed, Jenkins is working 🎉'
-            }
-        }
+  environment {
+    DOCKERHUB = credentials('dockerhub-creds-id')
+    IMAGE = "mohamedanter845/blender-dev"
+    K8S_MASTER = "ubuntu@10.0.1.154"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
+
+    stage('Docker Build & Push') {
+      steps {
+        sh '''
+          echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin
+          docker build -t $IMAGE:${BUILD_NUMBER} .
+          docker push $IMAGE:${BUILD_NUMBER}
+          docker tag $IMAGE:${BUILD_NUMBER} $IMAGE:latest
+          docker push $IMAGE:latest
+        '''
+      }
+    }
+
+    stage('Rollout to Kubernetes') {
+      steps {
+        sshagent(credentials: ['k8s-master-ssh']) {
+          sh '''
+            ssh -o StrictHostKeyChecking=no $K8S_MASTER \
+              "sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf set image deployment/blender-deployment blender=$IMAGE:${BUILD_NUMBER} -n default && \
+               sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status deployment/blender-deployment -n default --timeout=180s"
+          '''
+        }
+      }
+    }
+  }
 }
+
