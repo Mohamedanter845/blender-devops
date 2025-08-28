@@ -30,7 +30,7 @@ pipeline {
       steps {
         sshagent(credentials: ['k8s-master-ssh']) {
           sh '''
-            ssh -o StrictHostKeyChecking=no $K8S_MASTER \
+            ssh -o StrictHostKeyChecking=no $k8s-master-ssh \
               "sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf set image deployment/blender-deployment blender=$IMAGE:${BUILD_NUMBER} -n default && \
                sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status deployment/blender-deployment -n default --timeout=180s"
           '''
