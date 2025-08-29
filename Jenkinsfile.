@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     DOCKERHUB = credentials('dockerhub-creds-id')
-    IMAGE = "mohamedanter845/blender-dev"
+    IMAGE = "mohamedanter845/blender-flask"                            ه 
     K8S_MASTER = "ubuntu@10.0.1.154"
   }
 
